@@ -1,0 +1,136 @@
+version: '3.8'
+
+services:
+  # Databases
+  postgres-auth:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_auth_data:/var/lib/postgresql/data
+      - ./auth-service/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  postgres-flag:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: flags_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_flag_data:/var/lib/postgresql/data
+      - ./flag-service/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  postgres-targeting:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: targeting_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_targeting_data:/var/lib/postgresql/data
+      - ./targeting-service/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  dynamodb-local:
+    image: amazon/dynamodb-local
+    ports:
+      - "8000:8000"
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory"]
+
+  # Services
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "8001:8001"
+    environment:
+      DATABASE_URL: postgres://postgres:password@postgres-auth:5432/auth_db
+      PORT: 8001
+      MASTER_KEY: admin-secreto-123
+    depends_on:
+      - postgres-auth
+
+  flag-service:
+    build: ./flag-service
+    ports:
+      - "8002:8002"
+    environment:
+      DATABASE_URL: postgres://postgres:password@postgres-flag:5432/flags_db
+      PORT: 8002
+      AUTH_SERVICE_URL: http://auth-service:8001
+    depends_on:
+      - postgres-flag
+      - auth-service
+
+  targeting-service:
+    build: ./targeting-service
+    ports:
+      - "8003:8003"
+    environment:
+      DATABASE_URL: postgres://postgres:password@postgres-targeting:5432/targeting_db
+      PORT: 8003
+      AUTH_SERVICE_URL: http://auth-service:8001
+    depends_on:
+      - postgres-targeting
+      - auth-service
+
+  evaluation-service:
+    build: ./evaluation-service
+    ports:
+      - "8004:8004"
+    environment:
+      PORT: 8004
+      REDIS_URL: redis://redis:6379
+      FLAG_SERVICE_URL: http://flag-service:8002
+      TARGETING_SERVICE_URL: http://targeting-service:8003
+      SERVICE_API_KEY: tm_key_example
+      AWS_SQS_URL: http://localstack:4566/000000000000/togglemaster-queue
+      AWS_REGION: us-east-1
+    depends_on:
+      - redis
+      - flag-service
+      - targeting-service
+
+  analytics-service:
+    build: ./analytics-service
+    ports:
+      - "8005:8005"
+    environment:
+      PORT: 8005
+      AWS_SQS_URL: http://localstack:4566/000000000000/togglemaster-queue
+      AWS_DYNAMODB_TABLE: ToggleMasterAnalytics
+      AWS_REGION: us-east-1
+    depends_on:
+      - dynamodb-local
+
+  # LocalStack for SQS simulation
+  localstack:
+    image: localstack/localstack:3.0
+    ports:
+      - "4566:4566"
+    environment:
+      SERVICES: sqs,dynamodb
+      DEBUG: 1
+      DATA_DIR: /tmp/localstack/data
+    volumes:
+      - localstack_data:/tmp/localstack
+
+volumes:
+  postgres_auth_data:
+  postgres_flag_data:
+  postgres_targeting_data:
+  redis_data:
+  localstack_data:
