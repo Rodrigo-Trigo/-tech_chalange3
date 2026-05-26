@@ -17,7 +17,7 @@ jobs:
 
       - name: Atualizar tag da imagem
         run: |
-          sed -i 's|image:.*auth-service:.*|image: "YOUR_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/togglemaster/auth-service:1.0.1"|' FIAP/gitops/applications/auth-service/deployment.yaml
+          sed -i 's|image:.*auth-service:.*|image: "950185226544.dkr.ecr.us-east-1.amazonaws.com/togglemaster/auth-service:1.0.1"|' FIAP/gitops/applications/auth-service/deployment.yaml
 
       - name: Commit e Push
         env:
