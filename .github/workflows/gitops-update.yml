@@ -1,0 +1,28 @@
+name: Update GitOps
+
+on:
+  workflow_dispatch:   # você roda manualmente
+
+jobs:
+  update-deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v3
+
+      - name: Configurar Git
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+
+      - name: Atualizar tag da imagem
+        run: |
+          sed -i 's|image:.*auth-service:.*|image: "YOUR_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/togglemaster/auth-service:1.0.1"|' FIAP/gitops/applications/auth-service/deployment.yaml
+
+      - name: Commit e Push
+        env:
+          TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          git add FIAP/gitops/applications/auth-service/deployment.yaml
+          git commit -m "Atualiza tag da imagem para 1.0.1"
+          git push https://x-access-token:${TOKEN}@github.com/${{ github.repository }} HEAD:main
