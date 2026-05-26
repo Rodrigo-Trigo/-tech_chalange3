@@ -20,9 +20,7 @@ jobs:
           sed -i 's|image:.*auth-service:.*|image: "950185226544.dkr.ecr.us-east-1.amazonaws.com/togglemaster/auth-service:1.0.1"|' FIAP/gitops/applications/auth-service/deployment.yaml
 
       - name: Commit e Push
-        env:
-          TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           git add FIAP/gitops/applications/auth-service/deployment.yaml
           git commit -m "Atualiza tag da imagem para 1.0.1"
-          git push https://x-access-token:${TOKEN}@github.com/${{ github.repository }} HEAD:main
+          git push https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }} HEAD:main
