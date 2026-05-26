@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: toggle-service
-        image: rodrigo/toggle-service:latest
+        image: nginx:latest
         ports:
         - containerPort: 8003
 ---
