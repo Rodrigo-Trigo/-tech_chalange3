@@ -50,7 +50,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: auth-service
-          image: "YOUR_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/togglemaster/auth-service:latest"
+          image: "950185226544.dkr.ecr.us-east-1.amazonaws.com/togglemaster/auth-service:1.0.1"
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8001
