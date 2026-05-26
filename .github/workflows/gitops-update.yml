@@ -23,5 +23,6 @@ jobs:
         run: |
           git add FIAP/gitops/applications/auth-service/deployment.yaml
           git commit -m "Atualiza tag da imagem para 1.0.1"
-          git remote set-url origin https://Rodrigo-Trigo:${{ secrets.GH_TOKEN }}@github.com/Rodrigo-Trigo/-tech_chalange3.git
+          git remote remove origin
+          git remote add origin https://Rodrigo-Trigo:${{ secrets.GH_TOKEN }}@github.com/Rodrigo-Trigo/-tech_chalange3.git
           git push origin HEAD:main
