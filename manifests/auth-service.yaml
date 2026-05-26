@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: auth-service
-        image: rodrigo/auth-service:latest
+        image: nginx:latest
         ports:
         - containerPort: 8001
 ---
